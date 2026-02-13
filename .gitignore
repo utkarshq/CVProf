@@ -1,0 +1,33 @@
+# --- Private Config (Secrets) ---
+# Contains your address, phone, email, and specific signatures
+config/*.yaml
+!config/example_resume.yaml
+config/personal.tex
+config/__pycache__/
+
+# --- Personal Assets ---
+assets/*.jpg
+assets/*.png
+
+# --- Build Artifacts ---
+dist/
+build/
+
+# --- Temporary Files ---
+temp_*
+*.log
+*.aux
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.pdf
+*.html
+*.docx
+
+# --- System ---
+__pycache__/
+.DS_Store
+.venv/
+env/
+node_modules/

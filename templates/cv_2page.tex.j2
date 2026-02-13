@@ -1,0 +1,131 @@
+% CV Template — 2-Page Variant (Jinja2)
+% This file is auto-rendered from YAML data. Do not edit directly.
+% Edit config/resume_XX.yaml instead, then run: python3 scripts/build.py
+
+\documentclass[a4paper,11.5pt]{article}
+\usepackage[empty]{fullpage}
+\usepackage[left=0.5in, right=0.5in, top=0.5in, bottom=0.5in]{geometry}
+
+% Import Theme & Personal Data
+\usepackage{../theme/cv_style}
+\input{../config/personal}
+
+\begin{document}
+
+%----------HEADER----------
+\makecvheader
+
+%-----------PROFILE-----------
+\section{<<sections.profile>>}
+ {\small <<profile>>}
+
+%-----------SKILLS & CERTIFICATES-----------
+\section{<<sections.skills>>}
+\begin{itemize}[leftmargin=0.15in, label={}]
+  {\small\item{
+<%for skill in skills%>
+        \textbf{<<skill.category>>}{: <<skill.keywords>>.} \\
+<%endfor%>
+        \textbf{<<sections.certificates_label|default("Certificates")>>}{: <%for cert in certificates%>\href{<<cert.url>>}{<<cert.name>>}<%if not loop.last%>, <%endif%><%endfor%>.}
+        }}
+\end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{<<sections.experience>>}
+\resumeSubHeadingListStart
+
+<%for job in experience%>
+\resumeSubheading
+<%if job.company_url%>
+{\href{<<job.company_url>>}{<<job.company>>}}{<<job.date>>}
+<%else%>
+{<<job.company>>}{<<job.date>>}
+<%endif%>
+{<<job.title>>}{<<job.location>>}
+\resumeItemListStart
+<%for item in job.highlights%>
+\resumeItem{<<item>>}
+<%endfor%>
+\resumeItemListEnd
+
+<%endfor%>
+\resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{<<sections.education>>}
+\resumeSubHeadingListStart
+<%for edu in education%>
+<%if not edu.get('one_page_only', False)%>
+\resumeSubheading
+<%if edu.get('institution_url')%>
+{\href{<<edu.institution_url>>}{<<edu.institution>>}}{<<edu.date>>}
+<%else%>
+{<<edu.institution>>}{<<edu.date>>}
+<%endif%>
+<%if edu.get('degree_url')%>
+{\href{<<edu.degree_url>>}{<<edu.degree>>}}{<<edu.get('location', '')>>}
+<%else%>
+{<<edu.degree>>}{<<edu.get('location', '')>>}
+<%endif%>
+<%if edu.get('coursework')%>
+\resumeItemListStart
+\resumeItem{<<sections.coursework_label|default("Key Coursework")>>: <<edu.coursework>>.}
+\resumeItemListEnd
+<%endif%>
+<%if edu.get('highlights')%>
+\resumeItemListStart
+<%for item in edu.highlights%>
+\resumeItem{<<item>>}
+<%endfor%>
+\resumeItemListEnd
+<%endif%>
+<%endif%>
+<%endfor%>
+\resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{<<sections.projects>>}
+\resumeSubHeadingListStart
+<%for project in projects%>
+\resumeProjectHeading
+{\textbf{\href{<<project.url>>}{<<project.name>>}} $|$ \emph{<<project.tech>>}}{<<project.year>>}
+<%if project.get('highlights')%>
+\resumeItemListStart
+<%for item in project.highlights%>
+\resumeItem{<<item>>}
+<%endfor%>
+\resumeItemListEnd
+<%endif%>
+<%endfor%>
+\resumeSubHeadingListEnd
+
+%-----------LANGUAGES & SOFT SKILLS-----------
+\section{<<sections.languages>>}
+\begin{itemize}[leftmargin=0.15in, label={}]
+  {\small\item{
+        \textbf{<<sections.languages_label|default("Languages")>>}{: <%for lang in spoken_languages%><<lang.language>> (<<lang.level>>)<%if not loop.last%>, <%endif%><%endfor%>.} \\
+        \textbf{<<sections.soft_skills_label|default("Soft Skills")>>}{: <<soft_skills>>.}\\
+        \textbf{<<sections.hobbies_label|default("Hobbies")>>}{: <<hobbies>>}
+        }}
+\end{itemize}
+
+%-----------OTHER EXPERIENCE-----------
+\section{<<sections.other>>}
+\resumeSubHeadingListStart
+<%for other in other_experience%>
+\resumeSubheading
+<%if other.get('organization_url')%>
+{\href{<<other.organization_url>>}{<<other.organization>>}}{<<other.date>>}
+<%else%>
+{<<other.organization>>}{<<other.date>>}
+<%endif%>
+{<<other.title>>}{<<other.location>>}
+\resumeItemListStart
+<%for item in other.highlights%>
+\resumeItem{<<item>>}
+<%endfor%>
+\resumeItemListEnd
+<%endfor%>
+\resumeSubHeadingListEnd
+
+\end{document}

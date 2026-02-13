@@ -1,0 +1,122 @@
+% Main style file for CV
+% 
+% This file defines the look and feel, packages, and custom commands.
+% It separates style from content.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{../../theme/cv_style}[2026/02/13 CV Theme]
+
+% --- Packages ---
+\RequirePackage{latexsym}
+\RequirePackage{graphicx}
+\RequirePackage{titlesec}
+\RequirePackage{marvosym}
+\RequirePackage[usenames,dvipsnames]{color}
+\RequirePackage{verbatim}
+\RequirePackage{enumitem}
+\RequirePackage{xcolor}
+\RequirePackage{fancyhdr}
+\RequirePackage[english]{babel}
+\RequirePackage{tabularx}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{hyperref}
+\RequirePackage{etoolbox}
+
+% --- Font ---
+\RequirePackage[sfdefault]{roboto}
+\RequirePackage{microtype}
+\linespread{1.15}
+
+% --- Colors ---
+\definecolor{azure}{RGB}{0, 86, 179} % Darker, higher contrast blue 
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=azure,
+    filecolor=azure,
+    urlcolor=azure,
+    pdfborder={0 0 0}
+}
+
+% --- Page Style ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Layout
+\setlength{\footskip}{5pt}
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% --- Section Formatting ---
+\titleformat{\section}{
+    \vspace{-3pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-3pt}]
+
+\pdfgentounicode=1
+
+% --- Custom Commands ---
+\newcommand{\resumeItem}[1]{
+    \item\small{
+        #1 \vspace{-1pt}
+    }
+}
+
+\newcommand{\resumeSubheading}[4]{
+    \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & #2 \\
+        \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+        \small#1 & #2 \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+        \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+        \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+% --- Header Command ---
+% Requires \myName, \myLocation, \myPhone, \myEmail, \myLinkedIn, \myGithub, \myPhotoPath to be defined
+\newcommand{\makecvheader}{
+    \ifdefempty{\myPhotoPath}{%
+        %--- NO PHOTO: Full Width Header ---
+        \begin{minipage}[t]{\textwidth}
+            \vspace{-10pt}
+            \centering
+            \textbf{\Huge \scshape \myName} \\ \vspace{3pt}
+            \small
+            \myLocation \\
+            \href{tel:\myPhone}{\myPhone} $|$ \href{mailto:\myEmail}{\myEmail} \\
+            \href{\myLinkedInUrl}{\myLinkedIn} $|$ \href{\myGithubUrl}{\myGithub}
+        \end{minipage}
+    }{%
+        %--- WITH PHOTO: Split Header ---
+        \begin{minipage}[t]{0.70\textwidth}
+            \vspace{-10pt}
+            \raggedright
+            \textbf{\Huge \scshape \myName} \\ \vspace{3pt}
+            \small
+            \myLocation \\
+            \href{tel:\myPhone}{\myPhone} $|$ \href{mailto:\myEmail}{\myEmail} \\
+            \href{\myLinkedInUrl}{\myLinkedIn} $|$ \href{\myGithubUrl}{\myGithub}
+        \end{minipage}
+        \begin{minipage}[t]{0.29\textwidth}
+            \flushright
+            \vspace{-15pt}
+            \includegraphics[width=1.1in]{\myPhotoPath}
+        \end{minipage}
+    }
+    \vspace{-20pt}
+}

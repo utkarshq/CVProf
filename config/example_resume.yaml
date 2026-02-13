@@ -1,0 +1,102 @@
+# =============================================================================
+# CV Data — Example Template
+# =============================================================================
+# Copy this file to resume_en.yaml or resume_de.yaml and fill in your data.
+# Then run: python3 scripts/build.py --all
+# =============================================================================
+
+basics:
+  name: "Your Name"
+  label: "Your Title"
+  email: "your.email@example.com"
+  phone: "+1 234 567 8900"
+  location: "City, Country"
+  photo: "" # Optional: path to profile photo, e.g. "assets/photo.jpg"
+  linkedin:
+    username: "yourprofile"
+    display: "linkedin.com/in/yourprofile"
+    url: "https://www.linkedin.com/in/yourprofile/"
+  github:
+    username: "yourprofile"
+    display: "github.com/yourprofile"
+    url: "https://github.com/yourprofile"
+
+# Section titles — change for different languages
+sections:
+  profile: "Profile"
+  skills: "IT Skills & Certificates"
+  experience: "Professional Experience"
+  education: "Education"
+  projects: "Personal Projects"
+  languages: "Languages & Soft Skills"
+  other: "Other Experience"
+
+profile: >-
+  Write a brief professional summary here. 2-3 sentences about your
+  background, focus areas, and what makes you stand out.
+
+skills:
+  - category: "Programming"
+    keywords: "Python, JavaScript, TypeScript, SQL"
+  - category: "Frameworks"
+    keywords: "React, Django, Node.js"
+  - category: "Tools"
+    keywords: "Docker, Git, AWS, Linux"
+
+certificates:
+  - name: "Certificate Name"
+    url: "https://example.com/verify/..."
+
+experience:
+  - company: "Company Name"
+    company_url: "https://company.example.com"
+    title: "Your Job Title"
+    location: "City"
+    date: "Jan 2024 – Present"
+    start_date: "2024-01-01"
+    end_date: ""
+    summary: "Brief summary of your role."
+    highlights:
+      - "Achievement or responsibility #1 — used in 2-page variant."
+      - "Achievement or responsibility #2."
+      - "Achievement or responsibility #3."
+    highlights_short:
+      - "Condensed version of achievement #1 — used in 1-page variant."
+      - "Condensed version of achievement #2."
+
+education:
+  - institution: "University Name"
+    institution_url: "https://university.example.com"
+    degree: "Bachelor of Science: Computer Science"
+    degree_url: ""
+    date: "Oct 2020 – Present"
+    start_date: "2020-10-01"
+    end_date: ""
+    location: ""
+    coursework: "Algorithms, Machine Learning, Databases"
+
+projects:
+  - name: "Project Name"
+    url: "https://github.com/yourprofile/project"
+    tech: "Python, React"
+    year: "2024"
+    highlights:
+      - "Description of what you built and the impact."
+
+spoken_languages:
+  - { language: "English", level: "Native" }
+  - { language: "Spanish", level: "B2" }
+
+soft_skills: "Problem solving, teamwork, communication"
+hobbies: "Reading, hiking, chess"
+
+other_experience:
+  - organization: "Organization Name"
+    organization_url: "https://org.example.com"
+    title: "Your Role"
+    location: "City"
+    date: "2022 – 2023"
+    start_date: "2022-01-01"
+    end_date: "2023-12-31"
+    highlights:
+      - "What you did and learned."
