@@ -355,21 +355,80 @@ def generate_personal_tex(project_root, data):
         f.write('\n'.join(lines))
 
 
+def clean_latex(text):
+    """
+    Strip LaTeX commands from text for Web/JSON output, converting to Markdown where possible.
+    Handles: \\href -> [text](url), \\textbf -> **text**, \\emph -> *text*
+    """
+    if not isinstance(text, str):
+        return text
+        
+    # Replace \\& with &
+    text = text.replace('\\&', '&')
+    
+    # Remove \\newline
+    text = text.replace('\\newline', ' ')
+    
+    # \href{url}{text} -> [text](url) (Markdown)
+    while '\\href{' in text:
+        # Simple regex for non-nested braces
+        # Capture URL (group 1) and Text (group 2)
+        new_text = re.sub(r'\\href\{([^}]*)\}\{([^}]*)\}', r'[\2](\1)', text)
+        # LaTeX: \href{https://url}{text}
+        # Regex: \\href\{([^}]*)\}\{([^}]*)\}
+        # Group 1: https://url
+        # Group 2: text
+        # Markdown: [text](url) -> [\2](\1)
+        
+        # Let's fix the regex in the replacement content below
+        new_text = re.sub(r'\\href\{([^}]*)\}\{([^}]*)\}', r'[\2](\1)', text)
+        
+        if new_text == text:
+            # Fallback if regex fails (complex nesting): just strip command but keep text
+            # Try to preserve text part if possible, otherwise strip
+            text = text.replace('\\href{', '').replace('}', '') 
+            break
+        text = new_text
+
+    # \textbf{text} -> **text**, \emph{text} -> *text*
+    # Map commands to their markdown delimiters
+    cmd_map = {
+        '\\textbf': '**',
+        '\\emph': '*',
+        '\\textit': '*',
+        '\\small': '' # No markdown equivalent for small, just strip
+    }
+    
+    for cmd, delim in cmd_map.items():
+         while f'{cmd}{{ ' in text or f'{cmd}{{' in text:
+            # Construct regex safely without f-string complex escaping
+            # Pattern for {{ content }}: \\cmd\{\{([^}]*)\}\}
+            pattern_double = r'\\' + cmd[1:] + r'\{\{([^}]*)\}\}'
+            # Replacement: delim + group1 + delim
+            text = re.sub(pattern_double, f'{delim}\\1{delim}', text)
+            
+            # Pattern for { content }: \\cmd\{([^}]*)\}
+            pattern_single = r'\\' + cmd[1:] + r'\{([^}]*)\}'
+            new_text = re.sub(pattern_single, f'{delim}\\1{delim}', text)
+            
+            if new_text == text:
+                 text = text.replace(f'{cmd}{{', '').replace('}', '')
+                 break
+            text = new_text
+            
+    # Cleanup any remaining braces if macros were malformed
+    # text = text.replace('{', '').replace('}', '') # Too aggressive?
+    
+    return text.strip()
+
 def yaml_to_json_resume(data, lang):
     """
     Convert YAML resume data to JSON Resume format for the web pipeline.
-    
-    Maps our YAML structure to the JSON Resume standard schema used by
-    the Handlebars web theme.
-    
-    Args:
-        data: Resume data dictionary from YAML
-        lang: Language code ('en' or 'de')
-        
-    Returns:
-        Dictionary in JSON Resume format
     """
     basics = data.get('basics', {})
+    
+    # Determine current date string based on language
+    current_date_str = "Heute" if lang == 'de' else "Present"
     
     json_resume = {
         "basics": {
@@ -378,7 +437,7 @@ def yaml_to_json_resume(data, lang):
             "email": basics.get('email', ''),
             "phone": basics.get('phone', ''),
             "image": "profile.jpg",
-            "summary": data.get('profile', '').replace('\\href{', '').replace('\\newline ', '').replace('\\textbf{', ''),
+            "summary": clean_latex(data.get('profile', '')),
             "url": basics.get('linkedin', {}).get('url', ''),
             "location": {
                 "city": basics.get('location', '').split(',')[0].strip() if basics.get('location') else '',
@@ -402,7 +461,7 @@ def yaml_to_json_resume(data, lang):
         "work": [],
         "education": [],
         "skills": [],
-        "certificates": [],
+        "awards": [],
         "languages": [],
         "projects": [],
         "volunteer": []
@@ -410,103 +469,121 @@ def yaml_to_json_resume(data, lang):
     
     # Map experience
     for job in data.get('experience', []):
-        # Strip LaTeX commands for web output
-        highlights_raw = job.get('highlights', [])
-        highlights_clean = []
-        for h in highlights_raw:
-            clean = h.replace('\\textbf{', '').replace('\\href{', '')
-            # Remove LaTeX href: \href{url}{text} -> text
-            clean = re.sub(r'\\href\{[^}]*\}\{([^}]*)\}', r'\1', h)
-            clean = re.sub(r'\\textbf\{([^}]*)\}', r'\1', clean)
-            clean = clean.replace('\\newline ', '')
-            highlights_clean.append(clean)
+        highlights_raw = job.get('highlights') or job.get('highlights_short') or []
+        if isinstance(highlights_raw, str):
+             highlights_raw = [highlights_raw]
+        
+        highlights_clean = [clean_latex(h) for h in highlights_raw]
+        
+        # Parse dates
+        start_date = job.get('date', '').split(' – ')[0] if ' – ' in job.get('date', '') else job.get('date', '')
+        end_date = job.get('date', '').split(' – ')[1] if ' – ' in job.get('date', '') else ''
+        if not end_date and ' – ' in job.get('date', ''):
+             end_date = current_date_str
         
         entry = {
-            "name": job.get('company', ''),
-            "position": job.get('title', ''),
+            "name": clean_latex(job.get('company', '')),
+            "position": clean_latex(job.get('title', '')),
             "url": job.get('company_url', ''),
-            "startDate": job.get('start_date', ''),
-            "endDate": job.get('end_date', ''),
+            "startDate": start_date,
+            "endDate": end_date,
             "highlights": highlights_clean
         }
         if job.get('summary'):
-            entry["summary"] = job['summary']
+            entry["summary"] = clean_latex(job['summary'])
         json_resume["work"].append(entry)
     
-    # Map education (exclude variant-specific entries)
+    # Map education
     for edu in data.get('education', []):
         if edu.get('one_page_only'):
-            continue  # Skip condensed entries for web
+            continue
+            
+        start_date = edu.get('date', '').split(' – ')[0] if ' – ' in edu.get('date', '') else edu.get('date', '')
+        end_date = edu.get('date', '').split(' – ')[1] if ' – ' in edu.get('date', '') else ''
+        if not end_date and ' – ' in edu.get('date', ''):
+             end_date = current_date_str
+             
         entry = {
-            "institution": edu.get('institution', ''),
+            "institution": clean_latex(edu.get('institution', '')),
             "url": edu.get('institution_url', ''),
-            "area": edu.get('degree', '').split(': ')[-1] if ': ' in edu.get('degree', '') else edu.get('degree', ''),
-            "studyType": edu.get('degree', '').split(': ')[0] if ': ' in edu.get('degree', '') else '',
-            "startDate": edu.get('start_date', ''),
-            "endDate": edu.get('end_date', ''),
+            "area": clean_latex(edu.get('degree', '').split(': ')[-1] if ': ' in edu.get('degree', '') else edu.get('degree', '')),
+            "studyType": clean_latex(edu.get('degree', '').split(': ')[0] if ': ' in edu.get('degree', '') else ''),
+            "startDate": start_date,
+            "endDate": end_date,
         }
+        # Map coursework to 'courses' (rendered as tags/pills)
         if edu.get('coursework'):
-            entry["courses"] = [c.strip() for c in edu['coursework'].split(',')]
+            entry["courses"] = [clean_latex(c.strip()) for c in edu['coursework'].split(',')]
+        
+        # Map highlights to 'highlights' (rendered as bullet list in modified template)
         if edu.get('highlights'):
-            highlights_clean = []
-            for h in edu['highlights']:
-                clean = re.sub(r'\\href\{[^}]*\}\{([^}]*)\}', r'\1', h)
-                clean = re.sub(r'\\textbf\{([^}]*)\}', r'\1', clean)
-                highlights_clean.append(clean)
-            entry["highlights"] = highlights_clean
+             hl_raw = edu.get('highlights')
+             if isinstance(hl_raw, str): hl_raw = [hl_raw]
+             entry["highlights"] = [clean_latex(h) for h in hl_raw]
+            
         json_resume["education"].append(entry)
-    
-    # Map skills
-    for skill in data.get('skills', []):
-        json_resume["skills"].append({
-            "name": skill.get('category', ''),
-            "keywords": [k.strip() for k in skill.get('keywords', '').split(',')]
-        })
-    
-    # Map certificates
-    for cert in data.get('certificates', []):
-        json_resume["certificates"].append({
-            "name": cert.get('name', ''),
-            "url": cert.get('url', ''),
-            "issuer": "Coursera"
-        })
-    
-    # Map languages
-    for lang_item in data.get('spoken_languages', []):
-        json_resume["languages"].append({
-            "language": lang_item.get('language', ''),
-            "fluency": lang_item.get('level', '')
-        })
-    
+        
     # Map projects
     for proj in data.get('projects', []):
-        highlights_clean = []
-        for h in proj.get('highlights', []):
-            clean = re.sub(r'\\href\{[^}]*\}\{([^}]*)\}', r'\1', h)
-            clean = re.sub(r'\\textbf\{([^}]*)\}', r'\1', clean)
-            highlights_clean.append(clean)
-        json_resume["projects"].append({
-            "name": proj.get('name', ''),
+        hl = proj.get('highlights', [])
+        if isinstance(hl, str): hl = [hl]
+        
+        entry = {
+            "name": clean_latex(proj.get('name', '')),
+            "description": clean_latex(proj.get('tech', '')),
             "url": proj.get('url', ''),
-            "description": f"{proj.get('tech', '')} - {proj.get('year', '')}",
-            "highlights": highlights_clean
-        })
-    
-    # Map other experience as volunteer
+            "startDate": proj.get('year', ''),
+            "highlights": [clean_latex(h) for h in hl]
+        }
+        json_resume["projects"].append(entry)
+        
+    # Map certificates -> awards
+    for cert in data.get('certificates', []):
+        entry = {
+            "title": clean_latex(cert.get('name', '')),
+            "date": cert.get('date', ''),
+            "awarder": clean_latex(cert.get('issuer', '')),
+            "summary": cert.get('url', '')
+        }
+        json_resume["awards"].append(entry)
+        
+    # Map other experience -> volunteer
     for other in data.get('other_experience', []):
-        highlights_clean = []
-        for h in other.get('highlights', []):
-            clean = re.sub(r'\\href\{[^}]*\}\{([^}]*)\}', r'\1', h)
-            highlights_clean.append(clean)
-        json_resume["volunteer"].append({
-            "organization": other.get('organization', ''),
-            "position": other.get('title', ''),
+        hl = other.get('highlights', [])
+        if isinstance(hl, str): hl = [hl]
+        
+        start_date = other.get('date', '').split(' – ')[0] if ' – ' in other.get('date', '') else other.get('date', '')
+        end_date = other.get('date', '').split(' – ')[1] if ' – ' in other.get('date', '') else ''
+        if not end_date and ' – ' in other.get('date', ''):
+             end_date = current_date_str
+             
+        entry = {
+            "organization": clean_latex(other.get('organization', '')),
+            "position": clean_latex(other.get('title', '')),
             "url": other.get('organization_url', ''),
-            "startDate": other.get('start_date', ''),
-            "endDate": other.get('end_date', ''),
-            "highlights": highlights_clean
-        })
-    
+            "startDate": start_date,
+            "endDate": end_date,
+            "summary": clean_latex(" ".join(hl)),
+            "highlights": [clean_latex(h) for h in hl]
+        }
+        json_resume["volunteer"].append(entry)
+        
+    # Map skills
+    for skill_group in data.get('skills', []):
+        entry = {
+            "name": clean_latex(skill_group.get('category', '')),
+            "keywords": [clean_latex(k.strip()) for k in skill_group.get('keywords', '').split(',')]
+        }
+        json_resume["skills"].append(entry)
+        
+    # Map languages
+    for lang_entry in data.get('spoken_languages', []):
+        entry = {
+            "language": clean_latex(lang_entry.get('language', '')),
+            "fluency": clean_latex(lang_entry.get('level', ''))
+        }
+        json_resume["languages"].append(entry)
+        
     return json_resume
 
 def run_command(command, cwd=None):
@@ -1018,6 +1095,19 @@ def build(docx=False, one_page=False, two_page=False, web=False, theme=None):
             if not data:
                 print(f"  ! Failed to load YAML for {variant['name']}")
                 continue
+            
+            # Filter data based on variant type (1Page vs 2Page)
+            # This prevents empty list errors in LaTeX by verifying content visibility
+            if variant_type == "1Page":
+                # Filter out items marked as two_page_only
+                for section in ['experience', 'education', 'projects', 'other_experience', 'certificates']:
+                    if section in data and isinstance(data[section], list):
+                        data[section] = [item for item in data[section] if not item.get('two_page_only', False)]
+            elif variant_type == "2Page":
+                # Filter out items marked as one_page_only
+                for section in ['experience', 'education', 'projects', 'other_experience', 'certificates']:
+                    if section in data and isinstance(data[section], list):
+                        data[section] = [item for item in data[section] if not item.get('one_page_only', False)]
             
             # Render Jinja2 template -> .tex
             template_name = variant["template"]

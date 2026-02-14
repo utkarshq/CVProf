@@ -8,22 +8,22 @@
     {{#each resume.education}}
     <section class="education-item">
       {{#if summary}}
-        <label for="education-item-{{@index}}"></label>
+      <label for="education-item-{{@index}}"></label>
       {{/if}}
       <header class="clear">
         <div class="date">
           {{#if startDate}}
           <span class="startDate">
-          {{Y startDate}}
+            {{Y startDate}}
           </span>
           {{/if}}
           {{#if endDate}}
           <span class="endDate">
-          - {{Y endDate}}
+            - {{Y endDate}}
           </span>
           {{else}}
           <span class="endDate">
-          - Current
+            - Current
           </span>
           {{/if}}
         </div>
@@ -40,7 +40,11 @@
           {{/if}}
           {{#if institution}}
           <div class="institution">
+            {{#if url}}
+            <a target="_blank" href="{{url}}">{{institution}}</a>
+            {{else}}
             {{institution}}
+            {{/if}}
           </div>
           {{/if}}
         </div>
@@ -76,7 +80,14 @@
         </div>
         {{/if}}
         {{#if summary}}
-          <div class="summary">{{paragraphSplit summary}}</div>
+        <div class="summary">{{paragraphSplit summary}}</div>
+        {{/if}}
+        {{#if highlights.length}}
+        <ul class="highlights">
+          {{#each highlights}}
+          <li>{{paragraphSplit .}}</li>
+          {{/each}}
+        </ul>
         {{/if}}
       </div>
     </section>

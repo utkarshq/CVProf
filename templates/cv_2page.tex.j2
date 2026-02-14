@@ -110,6 +110,7 @@
 \end{itemize}
 
 %-----------OTHER EXPERIENCE-----------
+<%if other_experience|length > 0%>
 \section{<<sections.other>>}
 \resumeSubHeadingListStart
 <%for other in other_experience%>
@@ -127,5 +128,6 @@
 \resumeItemListEnd
 <%endfor%>
 \resumeSubHeadingListEnd
+<%endif%>
 
 \end{document}

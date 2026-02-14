@@ -2,12 +2,25 @@
 % This file is auto-rendered from YAML data. Do not edit directly.
 % Edit config/resume_XX.yaml instead, then run: python3 scripts/build.py
 
-\documentclass[a4paper,11.5pt]{article}
-\usepackage[empty]{fullpage}
-\usepackage[left=0.35in, right=0.35in, top=0.35in, bottom=0.35in]{geometry}
+\documentclass[a4paper,10pt]{article}
+\usepackage[colorlinks=true, urlcolor=blue]{hyperref}
+\usepackage[left=0.3in, right=0.3in, top=0.3in, bottom=0.3in]{geometry}
 
 % Import Theme & Personal Data
 \usepackage{../theme/cv_style}
+
+% --- 1-Page Optimizations ---
+% (Revised spacing to fix overlap and overlap with line separator)
+\titlespacing*{\section}{5pt}{5pt}{6pt}
+
+% Compact list overrides (Neutral 0pt for good density)
+\renewcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}, itemsep=0pt]}
+\renewcommand{\resumeItemListStart}{\begin{itemize}[itemsep=-2pt, leftmargin=0.2in]}
+
+% (Reverted to standard 2-line header via cv_style defaults or explicit restore if needed)
+% usage of \resumeSubheading in body will use the style's version (2-line) unless overridden.
+% I am REMOVING the override here.
+
 \input{../config/personal}
 
 \begin{document}
@@ -52,10 +65,10 @@
 \resumeSubHeadingListEnd
 
 %-----------EDUCATION-----------
+<%if education|length > 0%>
 \section{<<sections.education>>}
 \resumeSubHeadingListStart
 <%for edu in education%>
-<%if not edu.get('two_page_only', False)%>
 \resumeSubheading
 <%if edu.get('institution_url')%>
 {\href{<<edu.institution_url>>}{<<edu.institution>>}}{<<edu.date>>}
@@ -81,11 +94,12 @@
 <%endfor%>
 \resumeItemListEnd
 <%endif%>
-<%endif%>
 <%endfor%>
 \resumeSubHeadingListEnd
+<%endif%>
 
 %-----------PROJECTS-----------
+<%if projects|length > 0%>
 \section{<<sections.projects>>}
 \resumeSubHeadingListStart
 <%for project in projects%>
@@ -100,18 +114,20 @@
 <%endif%>
 <%endfor%>
 \resumeSubHeadingListEnd
+<%endif%>
 
 %-----------LANGUAGES & SOFT SKILLS-----------
 \section{<<sections.languages>>}
 \begin{itemize}[leftmargin=0.15in, label={}]
-  {\small\item{
-        \textbf{<<sections.languages_label|default("Languages")>>}{: <%for lang in spoken_languages%><<lang.language>> (<<lang.level>>)<%if not loop.last%>, <%endif%><%endfor%>.} \\
-        \textbf{<<sections.soft_skills_label|default("Soft Skills")>>}{: <<soft_skills>>.}\\
+    {\small\item{
+        \textbf{<<sections.languages_label|default("Languages")>>}{: <%for lang in spoken_languages%><<lang.language>> (<<lang.level>>)<%if not loop.last%>, <%endif%><%endfor%>} \hfill
+        \textbf{<<sections.soft_skills_label|default("Soft Skills")>>}{: <<soft_skills>>} \\
         \textbf{<<sections.hobbies_label|default("Hobbies")>>}{: <<hobbies>>}
-        }}
+    }}
 \end{itemize}
 
 %-----------OTHER EXPERIENCE-----------
+<%if other_experience|length > 0%>
 \section{<<sections.other>>}
 \resumeSubHeadingListStart
 <%for other in other_experience%>
@@ -129,5 +145,6 @@
 \resumeItemListEnd
 <%endfor%>
 \resumeSubHeadingListEnd
+<%endif%>
 
 \end{document}
